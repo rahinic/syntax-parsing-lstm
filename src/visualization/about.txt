@@ -1,1 +1,0 @@
-Contains scripts that are used to visualize the results of each analysis.
