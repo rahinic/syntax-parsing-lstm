@@ -1,0 +1,1 @@
+The folders here consists of the dataset in its various raw and manipulated forms in accordance to the needs of the project. thanks yto Kai

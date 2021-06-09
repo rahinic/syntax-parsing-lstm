@@ -1,0 +1,4 @@
+author: rahinic
+about: Google Play Store App installation history and user reviews datasets.
+
+1. Dataset from: https://www.kaggle.com/lava18/google-play-store-apps

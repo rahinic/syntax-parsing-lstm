@@ -1,0 +1,5 @@
+The dataset is taken from kaggle.com at https://www.kaggle.com/lava18/google-play-store-apps
+
+The dataset is scraped from Google Play Store and posted at kaggle.com and is licensed under Creative Commons Attribution 3.0 Unported License.
+
+Further, the code that is created by myself is not under any license restrictions. 
