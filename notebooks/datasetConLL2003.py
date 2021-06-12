@@ -89,6 +89,11 @@ class SlidingWindowDataset(Dataset):
         def label_pipeline(x):
             return [self.bioes_tags[bioes] for bioes in x]
 
+        # sliding window (thanks to https://diegslva.github.io/2017-05-02-first-post/)
+        def pytorch_rolling_window(x, window_size, step_size=1):
+            # unfold dimension to make our rolling window
+            return x.unfold(0,window_size,step_size)
+
         samples, labels = [], []
 
         print("converting tokens to indices to tensors")
@@ -104,7 +109,12 @@ class SlidingWindowDataset(Dataset):
                 for padding in range(50-len(current_sample)):
                     current_sample.append('PADDING')
 
-            current_sample = torch.tensor(sample_word_pipeline(current_sample), dtype=torch.int64)
+            current_sample_to_idx = sample_word_pipeline(current_sample)
+            current_sample_to_tensor = torch.tensor(current_sample_to_idx, dtype=torch.int64)
+            current_sample = pytorch_rolling_window(current_sample_to_tensor,5)
+            
+
+            #current_sample = torch.tensor(sample_word_pipeline(current_sample), dtype=torch.int64)
             current_pos = sample[idx][1]
 
             if len(current_pos) > 50:
@@ -114,7 +124,11 @@ class SlidingWindowDataset(Dataset):
                 for padding in range(50-len(current_pos)):
                     current_pos.append('PADDING')
 
-            current_pos = torch.tensor(sample_pos_pipeline(current_pos), dtype=torch.int64)
+            current_pos_to_idx = sample_pos_pipeline(current_pos)
+            current_pos_to_tensor = torch.tensor(current_pos_to_idx, dtype=torch.int64)
+            current_pos = pytorch_rolling_window(current_pos_to_tensor,5)
+
+            #current_pos = torch.tensor(sample_pos_pipeline(current_pos), dtype=torch.int64)
 
             current_bioes = sample[idx][2]
 
@@ -124,9 +138,12 @@ class SlidingWindowDataset(Dataset):
                 # padding logic
                 for padding in range(50-len(current_bioes)):
                     current_bioes.append('PADDING')
-                    
 
-            current_bioes = torch.tensor(label_pipeline(current_bioes), dtype=torch.int64)
+            current_bioes_to_idx = label_pipeline(current_bioes)
+            current_bioes_to_tensor = torch.tensor(current_bioes_to_idx, dtype=torch.int64)  
+            current_bioes = pytorch_rolling_window(current_bioes_to_tensor,5)          
+
+            #current_bioes = torch.tensor(label_pipeline(current_bioes), dtype=torch.int64)
 
             if len(current_sample+current_pos) != len(current_bioes):
                 print("Attention! Lengths don't match here:")
@@ -147,7 +164,9 @@ class SlidingWindowDataset(Dataset):
         return samples, labels
 
 
+
     def __init__(self):
+
         
         self.vocabulary, self.pos_tags, self.bioes_tags = self.load_dictionaries()
 
@@ -160,7 +179,5 @@ class SlidingWindowDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, idx) :
-
- 
 
         return self.samples[idx], self.labels[idx]
