@@ -1,5 +1,6 @@
 import time
 import torch
+import os
 from torch.utils.data import DataLoader
 from torch import nn
 import torch.optim as optim
@@ -32,7 +33,7 @@ print(f"Length of Target look-up table is: {len(y)}")
 ################################# 01.Model Parameters ####################################
 # read this seq2seq model: https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html --> for understanding embedding dimension and output dimension  
 VOCAB_SIZE = len(x1)+len(x2)+2
-EMBED_DIM = 100
+EMBED_DIM = 50
 HIDDEN_DIM = 32
 NUM_LAYERS = 2
 NUM_OF_CLASSES = len(y)+1
@@ -57,16 +58,17 @@ print("----------------------------------------------------------------")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
 # optimizer = optim.Adam(model.parameters())
 optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
-#criterion = nn.CrossEntropyLoss()
-criterion = nn.BCEWithLogitsLoss()
+criterion = nn.CrossEntropyLoss()
+#criterion = nn.KLDivLoss(reduction='batchmean')
+
 
 #define metric
 def binary_accuracy(preds, y):
     #round predictions to the closest integer
     rounded_preds = torch.round(preds)
-    #correct = (rounded_preds == y)
+    # correct = (rounded_preds == y)
 
-    #correct = (rounded_preds == y).float() 
+    # correct = (rounded_preds == y).float() 
 
     _,pred_label = torch.max(rounded_preds, dim=0)
     correct = (pred_label == y).float()
@@ -94,16 +96,16 @@ def train(model, dataset, optimizer, criterion):
        
        current_samples = sample
        current_labels = label
-       #print(current_samples)
+
        optimizer.zero_grad()
 
-       predicted_labels = model(current_samples)
-       predicted_labels = predicted_labels.to(torch.float)
-       current_labels = current_labels.to(torch.float)
+       predicted_labels = model(current_samples).permute(0,2,1)
+       
+    #    print(f"Predicted label dimension: {predicted_labels.size()} and actual label dimension: {current_labels.size()}")
     #    print(predicted_labels)
     #    print(current_labels)
-    #    print(predicted_labels.size())
-    #    print(current_labels.size())
+    #    predicted_labels = predicted_labels.to(torch.float)
+    #    current_labels = current_labels.to(torch.float)
        loss = criterion(predicted_labels, current_labels)
        accuracy = binary_accuracy(predicted_labels, current_labels)
 
@@ -111,7 +113,8 @@ def train(model, dataset, optimizer, criterion):
        optimizer.step()
 
        epoch_loss += loss.item()
-       epoch_accuracy += accuracy.item()
+    #    epoch_accuracy += accuracy.item()
+       epoch_accuracy =0
 
     return epoch_loss/len(dataset), epoch_accuracy/len(dataset)
 
@@ -132,21 +135,22 @@ def evaluate(model, dataset, criterion):
             current_samples = sample
             current_labels = label
 
-            predicted_labels = model(current_samples)
-            predicted_labels = predicted_labels.to(torch.float)
-            current_labels = current_labels.to(torch.float)
+            predicted_labels = model(current_samples).permute(0,2,1)
+            # predicted_labels = predicted_labels.to(torch.float)
+            # current_labels = current_labels.to(torch.float)
 
             loss = criterion(predicted_labels, current_labels)
-            accuracy = binary_accuracy(predicted_labels, current_labels)
+            # accuracy = binary_accuracy(predicted_labels, current_labels)
+            epoch_accuracy = 0
 
             epoch_loss += loss.item()
-            epoch_accuracy += accuracy.item()
+            #epoch_accuracy += accuracy.item()
 
     return epoch_loss/len(dataset), epoch_accuracy/len(dataset)
 
 ############################################################################################
 ################################## 06. NN Model training #####################################
-N_EPOCHS = 5
+N_EPOCHS = 3
 best_valid_loss = float('inf')
 
 for epoch in range(N_EPOCHS):
@@ -169,56 +173,5 @@ for epoch in range(N_EPOCHS):
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. Acc: {valid_acc*100:.2f}%')
     print("-------------------------------------------------------------------")
 
-# for idx, (sample, label) in enumerate(validation_dataset):
-
-#     if idx > 0:
-#         break
-
-#     print(sample[0].size())
-#     print(label[0].size())
-
-############################################################################################
-################################## 07. Model Predictions #####################################
-
-idx_to_BIOES = {}
-print("Lets make predictions")
-
-for key, value in y.items():
-    idx_to_BIOES[value] = key
-
-
-for idx, (sample, label) in enumerate(validation_dataset):
-
-    if idx > 0:
-        break
-print("Our sample to predict:")
-print(sample[0])
-print("Their actual label:")
-print(label[0])
-
-def predict(sentence, model):
-
-    
-    # print(f"{tokens_in_line} \n {tokens_to_idx}")
-
-    # token idx to tensor conversion
-    #print(sentence)
-    idx_to_torch01 = torch.tensor(sentence, dtype=torch.int64)
-    idx_to_torch = idx_to_torch01.unsqueeze(1).T
-
-
-    with torch.no_grad():
-        output = model(idx_to_torch)
-        print(output)
-        #print(output)
-        predicted_labels = []
-        for item in output:
-            predicted_labels.append(idx_to_BIOES[item])
-
-        return predicted_labels
-
-model = model.to("cpu")
-
-example = sample[0]
-
-print("This is:  %s" %idx_to_BIOES[predict(example, model)])             
+modelpath = "C:/Users/rahin/projects/paper-draft-03/notebooks"
+torch.save(model.state_dict(), os.path.join(modelpath, "conLLmodel.pth"))

@@ -1,3 +1,4 @@
+from typing import final
 from torch import nn
 import torch
 
@@ -24,35 +25,48 @@ class RNNBIOESTagger(nn.Module):
                             dropout=dropout,
                             batch_first=True)
 
-        self.fc = nn.Linear(hidden_dimension*2, 230)#output_dimension)
+        #self.fc = nn.Linear(hidden_dimension*2, output_dimension)#230)#
+        self.fc = nn.Linear(hidden_dimension, output_dimension)
 
         self.activation_fn = nn.Tanh()
 
 
     def forward(self, sample):
-        #print(sample)
-        #print(sample.size())
-        embedded = self.embedding(sample)
-        #print(embedded.size())
-        #print(self.lstm)
-        output, (hidden, cell) = self.lstm(embedded)
 
-        print(hidden[0][0])
-        print(output[0][0])
-        
-        print(f"{hidden.size(), output.size(), output.T.size()}")
+        # (1)- Embedding layer
+        # Note: batch size x sample size x embedding dim 64x230x50
+        # sample size x embedding dimension 230x50
+        embedded = self.embedding(sample)
+        # print(f"Dimension of Embedding layer of batch and single sample:{embedded.size(), embedded[0].size()} respectively")
+
+        #-------------------------------------------------------------------------
+
+        #(2)- LSTM layer 1
+        # Note: Input from Embedding layer. Dim: 64x230x50
+        # lstm2out dim: 64x230x32 and lstm2hidden dim: 1x64x32 
+        output, (hidden, cell) = self.lstm(embedded)       
+        # print(f"Dimenstion of Hidden and Output from LSTM layer: {hidden.size(), output.size()}")
+
+        #-------------------------------------------------------------------------
 
         #concat the final forward and backward hidden state
-        hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim = 1)
-        print(hidden[0])
-        print(hidden.size())
+        #hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim = 1)
+        hidden = torch.cat((hidden[-1,:,:], hidden[0,:,:]), dim = 1)
 
-        dense_output = self.fc(hidden)
+
+        #(3)- LSTM to linear layer: Final set of tags
+        dense_output = self.fc(output)
+        # print(f"LSTM to Linear layer output dimension {dense_output.size()}")
         
 
         #activation function
+
+        #final_output = nn.functional.log_softmax(dense_output, dim=1)
+
         outputs=self.activation_fn(dense_output)
-        print(outputs[0])
-        print(outputs.size())
+        # print(f"Dimension of output after activation function: {outputs.size()}")
+        # print("One example:")
+        # print(outputs[0])
+        # print(outputs[0].size())
+        #final_output, final_output_index = torch.max(outputs,dim=2)
         return outputs
-        #return dense_output
