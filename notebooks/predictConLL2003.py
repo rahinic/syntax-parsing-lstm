@@ -43,12 +43,12 @@ print("Lets make predictions")
 
 validation_dataset = DataLoader(dataset=SlidingWindowDataset("C:/Users/rahin/projects/paper-draft-03/data/raw/ConLL2003-bioes-valid.txt"),
                                 batch_size=64,
-                                shuffle=False)
+                                shuffle=True)
 
 for key, value in y.items():
     idx_to_BIOES[value] = key
 
-
+print(idx_to_BIOES)
 for idx, (sample, label) in enumerate(validation_dataset):
 
     if idx > 0:
@@ -72,16 +72,16 @@ def predict(sentence, model):
     with torch.no_grad():
         output = model(idx_to_torch)
         predicted_ouput=torch.argmax(output,dim=2)
-        #print(output)
+        print(predicted_ouput)
         predicted_labels = []
         for item in predicted_ouput:
             for i in item:
-                predicted_labels.append(idx_to_BIOES[i])
+                predicted_labels.append(idx_to_BIOES[int(i)])
         
         return predicted_labels
 
 model = model.to("cpu")
 
 example = sample[0]
-predict(example, model)
-# print("This is:  %s" %idx_to_BIOES[predict(example, model)])             
+predictions = predict(example, model)
+print(predictions)             
