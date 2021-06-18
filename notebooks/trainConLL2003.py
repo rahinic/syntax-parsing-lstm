@@ -40,7 +40,7 @@ HIDDEN_DIM = 32
 NUM_LAYERS = 2
 NUM_OF_CLASSES = len(y)+1
 EPOCHS = 5
-LEARNING_RATE = 0.2
+LEARNING_RATE = 0.4
 BATCH_SIZE = 64
 
 print(f"Our vocab size to the model is therefore: {VOCAB_SIZE}")

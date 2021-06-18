@@ -108,15 +108,6 @@ class SlidingWindowDataset(Dataset):
         # sliding window (thanks to https://diegslva.github.io/2017-05-02-first-post/)
         def pytorch_rolling_window(x, window_size, step_size=1):
 
-            # window = []
-            # start, stop = 0, window_size-1
-            # for i in range(0,45):
-            #     window.append(x[start:stop])
-            #     start = start+step_size
-            #     stop = stop+step_size
-            # return window
-            # unfold dimension to make our rolling window
-            #return torch.tensor(x, dtype=torch.int64).unfold(0,window_size,step_size)
             return x.unfold(0,window_size,step_size)
 
         samples, labels = [], []
@@ -135,21 +126,10 @@ class SlidingWindowDataset(Dataset):
                     current_sample.append('PADDING')
 
             current_sample_to_idx = sample_word_pipeline(current_sample)
-            current_sample_idx_to_windows = sliding_window(current_sample_to_idx)
-            current_sample = torch.tensor(current_sample_idx_to_windows, dtype=torch.int64)
-            #current_sample = pytorch_rolling_window(current_sample_to_tensor,5)
+            current_sample = torch.tensor(current_sample_to_idx, dtype=torch.int64)
+            # current_sample_idx_to_windows = sliding_window(current_sample_to_idx)
+            # current_sample = torch.tensor(current_sample_idx_to_windows, dtype=torch.int64)
 
-            # current_sample_window = pytorch_rolling_window(sample_word_pipeline(current_sample),5)
-            # current_sample02 = [] 
-            # for window in current_sample_window:
-                
-            #     current_sample02.append(torch.tensor(window, dtype=torch.int64))
-
-            #current_sample = torch.tensor(current_sample_to_idx, dtype=torch.int64)
-            #current_sample = pytorch_rolling_window(current_sample_to_tensor,5)
-            
-
-            #current_sample = torch.tensor(sample_word_pipeline(current_sample), dtype=torch.int64)
             current_pos = sample[idx][1]
 
             if len(current_pos) > 50:
@@ -160,16 +140,9 @@ class SlidingWindowDataset(Dataset):
                     current_pos.append('PADDING')
 
             current_pos_to_idx = sample_pos_pipeline(current_pos)
-            current_pos_idx_to_windows = sliding_window(current_pos_to_idx)
-            current_pos = torch.tensor(current_pos_idx_to_windows, dtype=torch.int64)
-            #current_pos = pytorch_rolling_window(current_pos_to_tensor,5)
-
-            # current_pos_window = pytorch_rolling_window(sample_pos_pipeline(current_pos),5)
-            # current_pos02 = []
-            # for pos in current_pos_window:
-            #     current_pos02.append(torch.tensor(pos, dtype=torch.int64))
-            #current_pos = torch.tensor(current_pos_to_idx, dtype=torch.int64)
-            #current_pos = torch.tensor(sample_pos_pipeline(current_pos), dtype=torch.int64)
+            current_pos = torch.tensor(current_pos_to_idx, dtype=torch.int64)
+            # current_pos_idx_to_windows = sliding_window(current_pos_to_idx)
+            # current_pos = torch.tensor(current_pos_idx_to_windows, dtype=torch.int64)
 
             current_bioes = sample[idx][2]
 
@@ -181,25 +154,10 @@ class SlidingWindowDataset(Dataset):
                     current_bioes.append('PADDING')
 
             current_bioes_to_idx = label_pipeline(current_bioes)
-            current_bioes_idx_to_windows = sliding_window(current_bioes_to_idx)
-            current_bioes = torch.tensor(current_bioes_idx_to_windows, dtype=torch.int64)  
-           #current_bioes = pytorch_rolling_window(current_bioes_to_tensor,5)  
-            # current_bioes_window = pytorch_rolling_window(label_pipeline(current_bioes),5)
-            # current_bioes02 = []
-            # for bioes in current_bioes_window:
-            #     current_bioes02.append(torch.tensor(bioes, dtype=torch.int64))
-            #current_bioes = torch.tensor(current_bioes_to_idx, dtype=torch.int64)        
+            current_bioes = torch.tensor(current_bioes_to_idx, dtype=torch.int64)
+            # current_bioes_idx_to_windows = sliding_window(current_bioes_to_idx)
+            # current_bioes = torch.tensor(current_bioes_idx_to_windows, dtype=torch.int64)  
 
-            #current_bioes = torch.tensor(label_pipeline(current_bioes), dtype=torch.int64)
-
-            # current_sample03 = []
-            # for token, pos in zip(current_sample02, current_pos02):
-            #     current_sample03.append(token+pos)
-
-            # if len(current_sample03) != len(current_bioes02):
-            #     print("Attentions! Lengths don't match here:")
-            #     print(current_sample03)
-            #     print(current_bioes02)
 
             if len(current_sample+current_pos) != len(current_bioes):
                 print("Attention! Lengths don't match here:")
