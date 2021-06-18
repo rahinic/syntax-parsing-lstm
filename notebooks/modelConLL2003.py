@@ -60,13 +60,6 @@ class RNNBIOESTagger(nn.Module):
         
 
         #activation function
-
-        #final_output = nn.functional.log_softmax(dense_output, dim=1)
-
         outputs=self.activation_fn(dense_output)
-        # print(f"Dimension of output after activation function: {outputs.size()}")
-        # print("One example:")
-        # print(outputs[0])
-        # print(outputs[0].size())
-        #final_output, final_output_index = torch.max(outputs,dim=2)
+ 
         return outputs

@@ -25,23 +25,25 @@ print("All datasets successfully loaded!")
 
 
 ##########################################################################################
-
+idx_to_BIOES = {}
 ds = SlidingWindowDataset("C:/Users/rahin/projects/paper-draft-03/data/raw/ConLL2003-bioes-valid.txt")
 #ds = SlidingWindowDataset()
 x1, x2, y = ds.load_dictionaries()
+for key, value in y.items():
+    idx_to_BIOES[value] = key
 print(f"Length of vocabulary is: {len(x1)} and Length of POS table is: {len(x2)}")
 print(f"Length of Target look-up table is: {len(y)}")
 ################################# 01.Model Parameters ####################################
 
 # read this seq2seq model: https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html --> for understanding embedding dimension and output dimension  
 VOCAB_SIZE = len(x1)+len(x2)+2
-EMBED_DIM = 50
-HIDDEN_DIM = 32
+EMBED_DIM = 100
+HIDDEN_DIM = 64
 NUM_LAYERS = 2
 NUM_OF_CLASSES = len(y)+1
 EPOCHS = 5
-LEARNING_RATE = 0.4
-BATCH_SIZE = 64
+LEARNING_RATE = 0.5
+BATCH_SIZE = 32
 
 print(f"Our vocab size to the model is therefore: {VOCAB_SIZE}")
 ################################### 02. NN Model  ########################################
@@ -67,15 +69,13 @@ criterion = nn.CrossEntropyLoss()
 
 #define metric
 def binary_accuracy(preds, y):
-    #round predictions to the closest integer
-    rounded_preds = torch.round(preds)
-    # correct = (rounded_preds == y)
+    
+    predsx = preds.permute(0,2,1) #reshape
+    predsx2 = torch.argmax(predsx, dim=2) #find BIOES index with max value for each token
+    correct = (predsx2 == y)
+    acc = correct.sum() / len(preds)
+    # print(type(acc))
 
-    # correct = (rounded_preds == y).float() 
-
-    _,pred_label = torch.max(rounded_preds[-1], dim=0)
-    correct = (pred_label == y).float()
-    acc = correct.sum() / len(correct)
     return acc
     
 #push to cuda if available
@@ -92,6 +92,8 @@ def train(model, dataset, optimizer, criterion):
 
     epoch_loss = 0
     epoch_accuracy = 0
+    epoch_dataset_length_total = 0
+    epoch_dataset_length.append(len(dataset))
 
     model.train()
 
@@ -110,16 +112,18 @@ def train(model, dataset, optimizer, criterion):
     #    predicted_labels = predicted_labels.to(torch.float)
     #    current_labels = current_labels.to(torch.float)
        loss = criterion(predicted_labels, current_labels)
-    #    accuracy = binary_accuracy(predicted_labels, current_labels)
+       accuracy = binary_accuracy(predicted_labels, current_labels)
 
        loss.backward()
        optimizer.step()
 
        epoch_loss += loss.item()
-    #    epoch_accuracy += accuracy.item()
-       epoch_accuracy =0
+       epoch_accuracy += accuracy.item()
+    #    epoch_dataset_length_total += epoch_dataset_length.item()
 
-    return epoch_loss/len(dataset), epoch_accuracy/len(dataset)
+    #    epoch_accuracy =0
+
+    return epoch_loss/len(dataset), epoch_accuracy/sum(epoch_dataset_length)
 
 ##########################################################################################
 ################################ 05. NN Model Eval Definition ############################
@@ -143,11 +147,11 @@ def evaluate(model, dataset, criterion):
             # current_labels = current_labels.to(torch.float)
 
             loss = criterion(predicted_labels, current_labels)
-            # accuracy = binary_accuracy(predicted_labels, current_labels)
-            epoch_accuracy = 0
+            accuracy = binary_accuracy(predicted_labels, current_labels)
+            #epoch_accuracy = 0
 
             epoch_loss += loss.item()
-            # epoch_accuracy += accuracy.item()
+            epoch_accuracy += accuracy.item()
 
     return epoch_loss/len(dataset), epoch_accuracy/len(dataset)
 
@@ -158,8 +162,8 @@ best_valid_loss = float('inf')
 
 for epoch in range(N_EPOCHS):
 
-    print(epoch)
-     
+    print(f"Epoch #: {epoch}")
+    epoch_dataset_length = []
     #train the model
     train_loss, train_acc = train(model, train_dataset, optimizer, criterion)
     
