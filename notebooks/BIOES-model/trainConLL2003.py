@@ -41,8 +41,8 @@ EMBED_DIM = 100
 HIDDEN_DIM = 64
 NUM_LAYERS = 2
 NUM_OF_CLASSES = len(y)+1
-EPOCHS = 5
-LEARNING_RATE = 0.2
+N_EPOCHS = 10
+LEARNING_RATE = 0.05
 BATCH_SIZE = 32
 
 print(f"Our vocab size to the model is therefore: {VOCAB_SIZE}")
@@ -62,7 +62,8 @@ print("----------------------------------------------------------------")
 ############################# 03. Optimizer and Loss  #################################
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
-optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
+#optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
+optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 criterion = nn.CrossEntropyLoss()
 
 
@@ -157,7 +158,7 @@ def evaluate(model, dataset, criterion):
 
 ############################################################################################
 ################################## 06. NN Model training #####################################
-N_EPOCHS = 5
+#N_EPOCHS = 10
 best_valid_loss = float('inf')
 
 for epoch in range(N_EPOCHS):
