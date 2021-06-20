@@ -4,6 +4,7 @@ from modelConLL2003 import RNNBIOESTagger
 from datasetConLL2003 import SlidingWindowDataset
 import torch
 from torch.utils.data import DataLoader
+import numpy as np
 
 ds = SlidingWindowDataset("C:/Users/rahin/projects/paper-draft-03/data/raw/ConLL2003-bioes-valid.txt")
 #ds = SlidingWindowDataset()
@@ -48,28 +49,12 @@ validation_dataset = DataLoader(dataset=SlidingWindowDataset("C:/Users/rahin/pro
 for key, value in y.items():
     idx_to_BIOES[value] = key
 
-print(idx_to_BIOES)
-for idx, (sample, label) in enumerate(validation_dataset):
-
-    if idx > 0:
-        break
-# print("Our sample to predict:")
-# print(sample[0])
-# print("Their actual label:")
-# print(label[0])
-print("current BIOES labels for Viterbi algo tokens")
-actual_labels = []
-for idx in label[0]:
-    actual_labels.append(idx_to_BIOES[int(idx)])
-print(actual_labels)
+# print(idx_to_BIOES)
 
 def predict(sentence, model):
 
-    
-    # print(f"{tokens_in_line} \n {tokens_to_idx}")
-
     # token idx to tensor conversion
-    #print(sentence)
+
     idx_to_torch01 = torch.tensor(sentence, dtype=torch.int64)
     idx_to_torch = idx_to_torch01.unsqueeze(1).T
 
@@ -77,7 +62,7 @@ def predict(sentence, model):
     with torch.no_grad():
         output = model(idx_to_torch)
         predicted_ouput=torch.argmax(output,dim=2)
-        print(predicted_ouput)
+        
         predicted_labels = []
 
         for pred in predicted_ouput:
@@ -87,7 +72,56 @@ def predict(sentence, model):
         return predicted_labels
 
 model = model.to("cpu")
+# ==============================================================================
+# ACCURACY & PRECISION CALCULATIONS
+
+total_accuracy = []
+length_of_sentence = []
+
+def model_accuracy_precision():
+
+    for idx, (sample,actualy) in enumerate(validation_dataset):
+
+
+        for x,y in zip(sample,actualy):
+
+            labelsy = torch.squeeze(y,dim=-1)  #actual labels
+            predictedy = predict(x, model) #predicted labels
+            
+
+            actual_labels = []
+            for idx in labelsy:
+                actual_labels.append(idx_to_BIOES[int(idx)])
+                
+
+            correct = np.array(actual_labels) == np.array(predictedy) # boolean comparison
+
+            total_accuracy.append(correct.sum())
+            length_of_sentence.append(len(x))
+
+            acc=sum(total_accuracy)/sum(length_of_sentence)*100
+
+    return round(acc,2)
+
+print(f"Total Accuracy of our model is: {model_accuracy_precision()}%")
+# ======================================================================================
+
+for idx, (sample, label) in enumerate(validation_dataset):
+
+    if idx > 0:
+    
+        break
+
+print("One example:")
+actual_labels, actual_sentence = [], []
+for idx in label[0]:
+    actual_labels.append(idx_to_BIOES[int(idx)])
+
+print(actual_labels)
+
+
 
 example = sample[0]
 predictions = predict(example, model)
-print(predictions)             
+print(predictions)    
+# print(probabilities)         
