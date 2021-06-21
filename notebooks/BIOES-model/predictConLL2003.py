@@ -17,7 +17,7 @@ HIDDEN_DIM = 64
 NUM_LAYERS = 2
 NUM_OF_CLASSES = len(y)+1
 N_EPOCHS = 10
-LEARNING_RATE = 0.05
+LEARNING_RATE = 0.01
 BATCH_SIZE = 32
 
 print(f"Our vocab size to the model is therefore: {VOCAB_SIZE}")
@@ -69,7 +69,7 @@ def predict(sentence, model):
             for i in pred:
                 predicted_labels.append(idx_to_BIOES[int(i)])
 
-        return predicted_labels
+        return output, predicted_labels
 
 model = model.to("cpu")
 # ==============================================================================
@@ -86,7 +86,7 @@ def model_accuracy_precision():
         for x,y in zip(sample,actualy):
 
             labelsy = torch.squeeze(y,dim=-1)  #actual labels
-            predictedy = predict(x, model) #predicted labels
+            probsy, predictedy = predict(x, model) #predicted labels
             
 
             actual_labels = []
@@ -118,10 +118,26 @@ for idx in label[0]:
     actual_labels.append(idx_to_BIOES[int(idx)])
 
 print(actual_labels)
-
-
-
 example = sample[0]
-predictions = predict(example, model)
-print(predictions)    
-# print(probabilities)         
+probsy, predictions = predict(example, model)
+probsy_np = probsy.cpu().detach().numpy()
+probsy_np =  np.squeeze(probsy_np, axis=0)
+
+# print(predictions)
+# print(probsy_np)
+# print(probsy_np.ndim)
+# ====================================================================================
+# Export the results of our predictions and their corresponding probabilities.
+# This will be used as input to the viterbi algorithm
+
+# Step 1: Export our BIOES predictions
+FILEPATH = "C:/Users/rahin/projects/paper-draft-03/data/processed"
+
+textfile = open(FILEPATH+"/sentence.txt", "w")
+for element in predictions:
+    textfile.write(element + "\n")
+textfile.close()
+
+# Step 2: Export the individual probability of each BIOES tag, given each words+POS tags predictions
+
+np.save(FILEPATH+"/tags_probabilities.npy", probsy_np)

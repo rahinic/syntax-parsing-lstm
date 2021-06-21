@@ -42,7 +42,7 @@ HIDDEN_DIM = 64
 NUM_LAYERS = 2
 NUM_OF_CLASSES = len(y)+1
 N_EPOCHS = 10
-LEARNING_RATE = 0.05
+LEARNING_RATE = 0.01
 BATCH_SIZE = 32
 
 print(f"Our vocab size to the model is therefore: {VOCAB_SIZE}")
@@ -183,3 +183,4 @@ for epoch in range(N_EPOCHS):
 
 modelpath = "C:/Users/rahin/projects/paper-draft-03/notebooks"
 torch.save(model.state_dict(), os.path.join(modelpath, "conLLmodel.pth"))
+print(y.keys())
