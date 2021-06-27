@@ -10,5 +10,5 @@ Using a supervised many-to-many LSTM model, the neural network tags the tokens a
 pickle, pytorch, numpy
 
 ## Reference:
-"Joint RNN-Based Greedy Parsing and Word Composition" by Legrand & Collobert
+"Joint RNN-Based Greedy Parsing and Word Composition" by Legrand & Collobert, ICLR 2015.
 <TBA>
