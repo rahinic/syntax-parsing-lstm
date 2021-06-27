@@ -9,15 +9,15 @@ from modelConLL2003 import RNNBIOESTagger
 
 print("Step 1: loading Train/Test/Validation datasets...")
 print("*"*100)     
-validation_dataset = DataLoader(dataset=SlidingWindowDataset("C:/Users/rahin/projects/paper-draft-03/data/raw/ConLL2003-bioes-valid.txt"),
+validation_dataset = DataLoader(dataset=SlidingWindowDataset("data/raw/ConLL2003-bioes-valid.txt"),
                                 batch_size=64,
                                 shuffle=True)
 print("*"*100)                                
-test_dataset = DataLoader(dataset=SlidingWindowDataset("C:/Users/rahin/projects/paper-draft-03/data/raw/ConLL2003-bioes-test.txt"),
+test_dataset = DataLoader(dataset=SlidingWindowDataset("data/raw/ConLL2003-bioes-test.txt"),
                                 batch_size=64,
                                 shuffle=True)                                
 print("*"*100)                                 
-train_dataset = DataLoader(dataset=SlidingWindowDataset("C:/Users/rahin/projects/paper-draft-03/data/raw/ConLL2003-bioes-train.txt"),
+train_dataset = DataLoader(dataset=SlidingWindowDataset("data/raw/ConLL2003-bioes-train.txt"),
                                 batch_size=64,
                                 shuffle=True)
 print("*"*100) 
@@ -26,13 +26,13 @@ print("All datasets successfully loaded!")
 
 ##########################################################################################
 idx_to_BIOES = {}
-ds = SlidingWindowDataset("C:/Users/rahin/projects/paper-draft-03/data/raw/ConLL2003-bioes-valid.txt")
-#ds = SlidingWindowDataset()
+ds = SlidingWindowDataset("data/raw/ConLL2003-bioes-valid.txt")
 x1, x2, y = ds.load_dictionaries()
 for key, value in y.items():
     idx_to_BIOES[value] = key
 print(f"Length of vocabulary is: {len(x1)} and Length of POS table is: {len(x2)}")
 print(f"Length of Target look-up table is: {len(y)}")
+
 ################################# 01.Model Parameters ####################################
 
 # read this seq2seq model: https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html --> for understanding embedding dimension and output dimension  
@@ -46,6 +46,7 @@ LEARNING_RATE = 0.01
 BATCH_SIZE = 32
 
 print(f"Our vocab size to the model is therefore: {VOCAB_SIZE}")
+
 ################################### 02. NN Model  ########################################
 
 print("Step 02. builing the model...")
@@ -59,7 +60,8 @@ print("----------------------------------------------------------------")
 print("Done! here is our model:")
 print(model)
 print("----------------------------------------------------------------")
-############################# 03. Optimizer and Loss  #################################
+
+############################# 03. Optimizer and Loss  ####################################
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
 #optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
@@ -181,6 +183,6 @@ for epoch in range(N_EPOCHS):
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. Acc: {valid_acc*100:.2f}%')
     print("-------------------------------------------------------------------")
 
-modelpath = "C:/Users/rahin/projects/paper-draft-03/notebooks"
+modelpath = "notebooks"
 torch.save(model.state_dict(), os.path.join(modelpath, "conLLmodel.pth"))
-print(y.keys())
+# print(y.keys())

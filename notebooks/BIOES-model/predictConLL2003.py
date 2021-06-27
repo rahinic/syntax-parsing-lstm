@@ -6,8 +6,8 @@ import torch
 from torch.utils.data import DataLoader
 import numpy as np
 
-ds = SlidingWindowDataset("C:/Users/rahin/projects/paper-draft-03/data/raw/ConLL2003-bioes-valid.txt")
-#ds = SlidingWindowDataset()
+ds = SlidingWindowDataset("data/raw/ConLL2003-bioes-valid.txt")
+
 x1, x2, y = ds.load_dictionaries()
 
 # read this seq2seq model: https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html --> for understanding embedding dimension and output dimension  
@@ -35,7 +35,7 @@ print("Done! here is our model:")
 print(model)
 print("----------------------------------------------------------------")
 
-
+# load trained model
 model.load_state_dict(torch.load("C:/Users/rahin/projects/paper-draft-03/notebooks/conLLmodel.pth"))
 model.eval()
 
@@ -80,6 +80,8 @@ length_of_sentence = []
 
 def model_accuracy_precision():
 
+    """ returns accuracy of the model using the validation dataset."""
+
     for idx, (sample,actualy) in enumerate(validation_dataset):
 
 
@@ -123,15 +125,13 @@ probsy, predictions = predict(example, model)
 probsy_np = probsy.cpu().detach().numpy()
 probsy_np =  np.squeeze(probsy_np, axis=0)
 
-# print(predictions)
-# print(probsy_np)
-# print(probsy_np.ndim)
+print(predictions)
 # ====================================================================================
 # Export the results of our predictions and their corresponding probabilities.
 # This will be used as input to the viterbi algorithm
 
 # Step 1: Export our BIOES predictions
-FILEPATH = "C:/Users/rahin/projects/paper-draft-03/data/processed"
+FILEPATH = "data/processed"
 
 textfile = open(FILEPATH+"/sentence.txt", "w")
 for element in predictions:
@@ -140,4 +140,4 @@ textfile.close()
 
 # Step 2: Export the individual probability of each BIOES tag, given each words+POS tags predictions
 
-np.save(FILEPATH+"/tags_probabilities.npy", probsy_np)
+np.save(FILEPATH+"/tags_probabilities01.npy", probsy_np)

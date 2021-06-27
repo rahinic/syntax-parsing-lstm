@@ -1,11 +1,10 @@
-# Word Compositional logic
-An analysis of Google Play Store Application download history dataset
+# Syntax Parsing with Recurrent Neural Network
 
-## 1. Dataset: 
+## Dataset: CoNLL-2003 dataset for NER tagging. The IOB tagging scheme were converted to BIOES using the repo: https://github.com/rahinic/BIO-to-BIOES-tagger
 
-## 2. Aim: 
+## Neural Network Model: Using a supervised many-to-many LSTM model, the neural network tags the tokens and corresponsing POS tags to BIOES tagging scheme with 91.25% accuracy.
 
-## 3. Necessary Packages:
+## Necessary Packages: pickle, pytorch, numpy
 
-## 4. Analysis Results:
+
 

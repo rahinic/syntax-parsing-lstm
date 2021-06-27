@@ -1,1 +1,3 @@
-about nothing
+Word lookup table W: ConLL2003_vocabulary.pkl
+POS lookup table P: conLL2003_pos_tags.pkl
+BIOES lookup table T: ConLL2003_BIOES_tags.pkl

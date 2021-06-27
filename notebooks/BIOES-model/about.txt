@@ -1,1 +1,1 @@
-<TBA>
+Neural Network model that tags a corpus with BIOES tagging-scheme.

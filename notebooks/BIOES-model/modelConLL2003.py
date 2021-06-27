@@ -2,7 +2,7 @@ from typing import final
 from torch import nn
 import torch
 
-"""RNN Many-to-many multi-class classification neural network model framework design"""
+"""RNN Many-to-many multi-class classification neural network model structure definition"""
 
 class RNNBIOESTagger(nn.Module):
 

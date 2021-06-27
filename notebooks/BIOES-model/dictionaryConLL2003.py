@@ -1,3 +1,8 @@
+# Dictionary Construction:
+# (1) Word look-up table W
+# (2) POS look-up table P
+# (3) BIOES look-up table T
+
 import pickle
 
 def read_file(input_file: str):
@@ -27,9 +32,9 @@ def find_tokens(input_dataset: str):
     return all_tokens, all_pos_tags, all_ner_tags
 
 # Step 1: get file contents
-train_dataset = read_file(r"C:\Users\rahin\projects\paper-draft-03\data\raw\ConLL2003-bioes-train.txt")
-test_dataset = read_file(r"C:\Users\rahin\projects\paper-draft-03\data\raw\ConLL2003-bioes-test.txt")
-valid_dataset = read_file(r"C:\Users\rahin\projects\paper-draft-03\data\raw\ConLL2003-bioes-valid.txt")
+train_dataset = read_file(r"data\raw\ConLL2003-bioes-train.txt")
+test_dataset = read_file(r"data\raw\ConLL2003-bioes-test.txt")
+valid_dataset = read_file(r"data\raw\ConLL2003-bioes-valid.txt")
 
 # Step 2: get tokens, pos and bioes tags in all 3 files
 v1, p1, t1 =  find_tokens(train_dataset)
@@ -56,15 +61,15 @@ for idx, bioes in enumerate(all_unique_bioes_tags):
     BIOES_tags[bioes] = idx  
 
 # Step 5: Export dictionaries
-vocab_to_file = open("C:/Users/rahin/projects/paper-draft-03/data/interim/ConLL2003_vocabulary.pkl","wb")
+vocab_to_file = open("data/interim/ConLL2003_vocabulary.pkl","wb")
 pickle.dump(vocabulary, vocab_to_file)
 vocab_to_file.close()
 
-tags_to_file = open("C:/Users/rahin/projects/paper-draft-03/data/interim/ConLL2003_pos_tags.pkl","wb")
+tags_to_file = open("data/interim/ConLL2003_pos_tags.pkl","wb")
 pickle.dump(pos_tags, tags_to_file)
 tags_to_file.close()
 
-bioes_to_file = open("C:/Users/rahin/projects/paper-draft-03/data/interim/ConLL2003_BIOES_tags.pkl","wb")
+bioes_to_file = open("data/interim/ConLL2003_BIOES_tags.pkl","wb")
 pickle.dump(BIOES_tags, bioes_to_file)
 bioes_to_file.close()
 

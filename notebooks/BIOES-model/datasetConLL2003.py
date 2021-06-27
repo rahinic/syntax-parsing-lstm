@@ -1,3 +1,5 @@
+# PyTorch dataset preprocessing, (sample, label) iterator
+
 import pickle
 from typing import List, Tuple
 from torch._C import dtype
@@ -7,13 +9,15 @@ import torch
 class SlidingWindowDataset(Dataset):
 
     def file_open(self, filepath: str, ftype: str):
+
+        """file operations: open, read, return file content and close"""
         
-        if ftype == "pickle":
+        if ftype == "pickle":                           #dictionary
 
             file = open(filepath, "rb")
             content = pickle.load(file)
             file.close()
-        else:
+        else:                                           #dataset
             filename = filepath.split('/')[-1]
             print(f"loading dataset: {filename}")
             content = open(filepath, mode='r').read()
@@ -22,16 +26,19 @@ class SlidingWindowDataset(Dataset):
 
     def load_dictionaries(self):
 
+        """Look-up tables: Word (W), POS tags(P) and BIOES tags(T)"""
+
         print("loading dictionaries...")
 
-        list_of_dicts = ["C:/Users/rahin/projects/paper-draft-03/data/interim/ConLL2003_vocabulary.pkl",
-                        "C:/Users/rahin/projects/paper-draft-03/data/interim/ConLL2003_pos_tags.pkl",
-                        "C:/Users/rahin/projects/paper-draft-03/data/interim/ConLL2003_BIOES_tags.pkl"]
+        list_of_dicts = ["data/interim/ConLL2003_vocabulary.pkl",
+                        "data/interim/ConLL2003_pos_tags.pkl",
+                        "data/interim/ConLL2003_BIOES_tags.pkl"]
         
         vocabulary = self.file_open(filepath= list_of_dicts[0], ftype= "pickle")
         pos_tags = self.file_open(filepath= list_of_dicts[1], ftype= "pickle")
         bioes_tags = self.file_open(filepath= list_of_dicts[2], ftype= "pickle")
 
+        # add padding vector to each dict
         vocabulary['PADDING'] = len(vocabulary)+1
         pos_tags['PADDING'] = len(pos_tags)+1
         bioes_tags['PADDING'] = len(bioes_tags)+1
@@ -42,18 +49,18 @@ class SlidingWindowDataset(Dataset):
 
     def file_processing(self):
 
+        """create tuple ((word, pos, bioes)) from each sample"""
+
         print("Performing dataset pre-processing activities...")
 
         all_samples, all_pos_tags, all_bioes_tags, all_samples_tuples = [], [], [], []
 
         #max_sentence_length = []
         dataset = self.file_open(filepath = self.mydataset, ftype="dataset")
-        #dataset = self.file_open(filepath= r"C:\Users\rahin\projects\paper-draft-03\data\raw\ConLL2003-bioes-valid.txt", ftype="dataset")
+        #dataset = self.file_open(filepath= r"data\raw\ConLL2003-bioes-valid.txt", ftype="dataset")
         dataset = dataset.split(". . O O") #break by sentences
 
         for sentence in dataset: # each sentence
-
-            
 
             sentence = sentence.split('\n') # each line
             all_words, all_pos, all_bioes = [], [], [] # refresh for each sentence
@@ -83,17 +90,16 @@ class SlidingWindowDataset(Dataset):
 
         print("Parsing the dataset now...")
 
-        def sample_word_pipeline(x):
- 
+        def sample_word_pipeline(x):                        # word to idx
             return [self.vocabulary[tok] for tok in x]
         
-        def sample_pos_pipeline(x):
+        def sample_pos_pipeline(x):                         # pos to idx
             return [self.pos_tags[pos] for pos in x]
 
-        def label_pipeline(x):
+        def label_pipeline(x):                              # BIOES to idx
             return [self.bioes_tags[bioes] for bioes in x]
 
-        def sliding_window(x):
+        def sliding_window(x):                              #opt #1: idx sliding window
             window1, window2 = [], []
             start, stop = 0, 5
             for i in range(0,46):
@@ -105,8 +111,9 @@ class SlidingWindowDataset(Dataset):
                 for win in window:
                     window2.append(win)
             return window2
+        
         # sliding window (thanks to https://diegslva.github.io/2017-05-02-first-post/)
-        def pytorch_rolling_window(x, window_size, step_size=1):
+        def pytorch_rolling_window(x, window_size, step_size=1):    #opt#2: Tensor idx sliding window
 
             return x.unfold(0,window_size,step_size)
 
@@ -118,15 +125,15 @@ class SlidingWindowDataset(Dataset):
 
             current_sample = list(sample)[idx][0]
 
-            if len(current_sample) > 50:
+            if len(current_sample) > 50:            #excluding samples with token size >50 for simplicity
                 continue
             else:
                 # padding logic
                 for padding in range(50-len(current_sample)):
                     current_sample.append('PADDING')
 
-            current_sample_to_idx = sample_word_pipeline(current_sample)
-            current_sample = torch.tensor(current_sample_to_idx, dtype=torch.int64)
+            current_sample_to_idx = sample_word_pipeline(current_sample)  #padded sentence tokens to idx
+            current_sample = torch.tensor(current_sample_to_idx, dtype=torch.int64) #idx to tensor
             # current_sample_idx_to_windows = sliding_window(current_sample_to_idx)
             # current_sample = torch.tensor(current_sample_idx_to_windows, dtype=torch.int64)
 
@@ -158,7 +165,7 @@ class SlidingWindowDataset(Dataset):
             # current_bioes_idx_to_windows = sliding_window(current_bioes_to_idx)
             # current_bioes = torch.tensor(current_bioes_idx_to_windows, dtype=torch.int64)  
 
-
+            """ Simple Test code-piece to assert that length of samples (word+pos) matches length of the labels (bioes)"""
             if len(current_sample+current_pos) != len(current_bioes):
                 print("Attention! Lengths don't match here:")
                 print(current_sample)
@@ -178,16 +185,13 @@ class SlidingWindowDataset(Dataset):
 
         return samples, labels
 
-
+############################################################################################################
 
     def __init__(self, myDataset=None):
 
         self.mydataset = myDataset
-        
         self.vocabulary, self.pos_tags, self.bioes_tags = self.load_dictionaries()
-
         self.all_samples = self.file_processing()
-
         self.samples, self.labels = self.file_parser(self.all_samples)
 
     def __len__(self):
@@ -195,6 +199,5 @@ class SlidingWindowDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, idx) :
-
 
         return self.samples[idx], self.labels[idx]
