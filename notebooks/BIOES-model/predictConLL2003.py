@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 import numpy as np
 
-ds = SlidingWindowDataset("data/raw/ConLL2003-bioes-valid.txt")
+ds = SlidingWindowDataset("C:/Users/rahin/projects/paper-draft-03/data/raw/ConLL2003-bioes-valid.txt")
 
 x1, x2, y = ds.load_dictionaries()
 
@@ -36,13 +36,13 @@ print(model)
 print("----------------------------------------------------------------")
 
 # load trained model
-model.load_state_dict(torch.load("C:/Users/rahin/projects/paper-draft-03/notebooks/conLLmodel.pth"))
+model.load_state_dict(torch.load("/notebooks/conLLmodel.pth"))
 model.eval()
 
 idx_to_BIOES = {}
 print("Lets make predictions")
 
-validation_dataset = DataLoader(dataset=SlidingWindowDataset("C:/Users/rahin/projects/paper-draft-03/data/raw/ConLL2003-bioes-valid.txt"),
+validation_dataset = DataLoader(dataset=SlidingWindowDataset("/data/raw/ConLL2003-bioes-valid.txt"),
                                 batch_size=64,
                                 shuffle=True)
 
@@ -131,7 +131,7 @@ print(predictions)
 # This will be used as input to the viterbi algorithm
 
 # Step 1: Export our BIOES predictions
-FILEPATH = "data/processed"
+FILEPATH = "/data/processed"
 
 textfile = open(FILEPATH+"/sentence.txt", "w")
 for element in predictions:
@@ -141,3 +141,5 @@ textfile.close()
 # Step 2: Export the individual probability of each BIOES tag, given each words+POS tags predictions
 
 np.save(FILEPATH+"/tags_probabilities01.npy", probsy_np)
+
+

@@ -23,10 +23,11 @@ class RNNBIOESTagger(nn.Module):
                             hidden_dimension,
                             num_of_layers,
                             dropout=dropout,
+                            bidirectional=True,
                             batch_first=True)
 
-        #self.fc = nn.Linear(hidden_dimension*2, output_dimension)#230)#
-        self.fc = nn.Linear(hidden_dimension, output_dimension)
+        self.fc = nn.Linear(hidden_dimension*2, output_dimension)#230)#
+        # self.fc = nn.Linear(hidden_dimension, output_dimension)
 
         self.activation_fn = nn.Tanh()
 

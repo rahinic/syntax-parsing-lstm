@@ -30,9 +30,9 @@ class SlidingWindowDataset(Dataset):
 
         print("loading dictionaries...")
 
-        list_of_dicts = ["data/interim/ConLL2003_vocabulary.pkl",
-                        "data/interim/ConLL2003_pos_tags.pkl",
-                        "data/interim/ConLL2003_BIOES_tags.pkl"]
+        list_of_dicts = ["C:/Users/rahin/projects/paper-draft-03/data/interim/ConLL2003_vocabulary.pkl",
+                        "C:/Users/rahin/projects/paper-draft-03/data/interim/ConLL2003_pos_tags.pkl",
+                        "C:/Users/rahin/projects/paper-draft-03/data/interim/ConLL2003_BIOES_tags.pkl"]
         
         vocabulary = self.file_open(filepath= list_of_dicts[0], ftype= "pickle")
         pos_tags = self.file_open(filepath= list_of_dicts[1], ftype= "pickle")

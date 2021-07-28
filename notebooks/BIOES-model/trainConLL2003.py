@@ -68,10 +68,24 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 criterion = nn.CrossEntropyLoss()
 
+def train_accuracy(preds, y):
+    predicted_labels_dirty = preds.permute(0,2,1)
+    predicted_labels_final = torch.argmax(predicted_labels_dirty, dim=2).tolist()
+    actual_labels_final = y.tolist()
+    accuracy_of_all_lines = []
+    for predicted, actual in zip(predicted_labels_final, actual_labels_final):
+        counter = 0
+        for pred,act in zip(predicted,actual):
+            if pred == act:
+                counter = counter+1
+        accuracy_of_this_line = counter/50
+        accuracy_of_all_lines.append(accuracy_of_this_line)
+    accuracy = sum(accuracy_of_all_lines)/len(predicted_labels_final)
 
+    return accuracy
 
 #define metric
-def binary_accuracy(preds, y):
+def binary_accuracy(preds, y):  #decommisioned 28.07.2021
     
     predsx = preds.permute(0,2,1) #reshape
     predsx2 = torch.argmax(predsx, dim=2) #find BIOES index with max value for each token
@@ -89,8 +103,9 @@ criterion = criterion.to(device)
 ############################## 04. NN Model Train Definition #############################
 
 def train(model, dataset, optimizer, criterion):
-    #log_interval = 500
-    start_time = time.time()
+
+    t = time.localtime()
+    start_time = time.strftime("%H:%M:%S", t)
     print(start_time)
 
     epoch_loss = 0
@@ -115,13 +130,13 @@ def train(model, dataset, optimizer, criterion):
     #    predicted_labels = predicted_labels.to(torch.float)
     #    current_labels = current_labels.to(torch.float)
        loss = criterion(predicted_labels, current_labels)
-       accuracy = binary_accuracy(predicted_labels, current_labels)
+       accuracy = train_accuracy(predicted_labels, current_labels)
 
        loss.backward()
        optimizer.step()
 
        epoch_loss += loss.item()
-       epoch_accuracy += accuracy.item()
+       epoch_accuracy += accuracy
     #    epoch_dataset_length_total += epoch_dataset_length.item()
 
     #    epoch_accuracy =0
@@ -132,7 +147,8 @@ def train(model, dataset, optimizer, criterion):
 ################################ 05. NN Model Eval Definition ############################
 def evaluate(model, dataset, criterion):
     
-    start_time = time.time()
+    t = time.localtime()
+    start_time = time.strftime("%H:%M:%S", t)
     print(start_time)
 
     epoch_loss = 0
@@ -150,11 +166,11 @@ def evaluate(model, dataset, criterion):
             # current_labels = current_labels.to(torch.float)
 
             loss = criterion(predicted_labels, current_labels)
-            accuracy = binary_accuracy(predicted_labels, current_labels)
+            accuracy = train_accuracy(predicted_labels, current_labels)
             #epoch_accuracy = 0
 
             epoch_loss += loss.item()
-            epoch_accuracy += accuracy.item()
+            epoch_accuracy += accuracy
 
     return epoch_loss/len(dataset), epoch_accuracy/len(dataset)
 
